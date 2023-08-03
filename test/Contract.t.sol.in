@@ -21,7 +21,10 @@ contract ContractTest is Test {
     function testExample() public {
         assertTrue(unit != address(0));
 
-        unit.call(hex"");
+        (bool ret, bytes memory data) = unit.call(hex"");
+        assertTrue(ret);
+        assertEq(data, hex"");
+
         bytes32 slot0 = vm.load(unit, bytes32(uint256(0)));
         assertEq(slot0, bytes32(uint256(0x68656c6c6f20776f726c64)));
     }
