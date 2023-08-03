@@ -1,13 +1,92 @@
-%push(end - start)
-dup1
-%push(start)
-returndatasize
-codecopy
-returndatasize
+%macro push0()
+        # TODO: replace with push0 when it's added
+        push1 0
+%end
+
+%def historical_roots_modulus()
+        98304
+%end
+
+%macro get_timestamp()
+        %push0()
+        calldataload
+%end
+        
+# If caller is from system, jump to update.
+caller
+push20 0xfffffffffffffffffffffffffffffffffffffffe
+eq
+push1 update
+jumpi
+
+########
+# READ #
+########
+
+# Check if calldata is less than 32 bytes
+push1 32        # [32]
+calldatasize    # [calldatasize, 32]
+lt              # [calldatasize < 32]
+push1 revert    # [revert_addr, calldatasize < 32]
+jumpi           # []
+
+# Load stored timestamp.
+push3 historical_roots_modulus() # [hrm, time]
+%get_timestamp() # [time]
+mod             # [time_index]
+dup1            # [time_index, time_index]
+sload           # [want, time_index]
+
+# Verify stored timestamp matches input.
+%get_timestamp() # [got, want, time_index]
+eq              # [got == want, time_index]
+iszero          # [got != want, time_index]
+push1 revert    # [revert_addr, got != want, time_index]
+jumpi           # [time_index]
+
+# Extend index to get root index.
+push3 historical_roots_modulus() # [hsm, time_index]
+add             # [root_index]
+sload           # [root]
+
+%push0()        # [0, root]
+mstore          # []
+
+push1 32        # [size]
+%push0()        # [offset]
 return
 
-start:
-%push(0x68656c6c6f20776f726c64)
-returndatasize
+##########
+# UPDATE #
+##########
+
+update:
+jumpdest
+timestamp       # [time]
+push3 historical_roots_modulus() # [hsm, time]
+timestamp       # [time, hsm, time]
+mod             # [time_index, time]
+sstore          # []
+
+%push0()        # [0]
+calldataload    # [root]
+push3 historical_roots_modulus() # [hsm, root]
+timestamp       # [time, hsm, root]
+mod             # [time_index, root]
+push3 historical_roots_modulus() # [hsm, time_index, root]
+add             # [root_index, root]
 sstore
-end:
+
+%push0()
+%push0()
+return
+
+##########
+# REVERT #
+##########
+
+revert:
+jumpdest
+%push0()
+%push0()
+revert

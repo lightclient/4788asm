@@ -6,6 +6,7 @@ import "../src/Contract.sol";
 
 contract ContractTest is Test {
     address unit;
+    uint256 historical_roots_modulus = 98304;
 
     function setUp() public {
         bytes memory bytecode = hex"@bytecode@";
@@ -18,14 +19,32 @@ contract ContractTest is Test {
         unit = returned;
     }
 
-    function testExample() public {
+    function testRead() public {
         assertTrue(unit != address(0));
 
-        (bool ret, bytes memory data) = unit.call(hex"");
+        vm.store(unit, bytes32(uint256(block.timestamp % historical_roots_modulus)), bytes32(uint256(block.timestamp)));
+
+        bytes memory root = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
+        vm.store(unit, bytes32(uint256(block.timestamp % historical_roots_modulus + historical_roots_modulus)), bytes32(root));
+
+        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(uint256(block.timestamp))));
+        assertTrue(ret);
+        assertEq(data, bytes(root));
+    }
+
+    function testUpdate() public {
+        assertTrue(unit != address(0));
+
+        vm.prank(0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE);
+        (bool ret, bytes memory data) = unit.call(hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6");
+
         assertTrue(ret);
         assertEq(data, hex"");
 
-        bytes32 slot0 = vm.load(unit, bytes32(uint256(0)));
-        assertEq(slot0, bytes32(uint256(0x68656c6c6f20776f726c64)));
+        bytes32 timestamp = vm.load(unit, bytes32(uint256(block.timestamp % 98304)));
+        assertEq(timestamp, bytes32(uint256(block.timestamp)));
+
+        bytes32 root = vm.load(unit, bytes32(uint256(block.timestamp % 98304 + 98304)));
+        assertEq(root, bytes32(hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6"));
     }
 }
