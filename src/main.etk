@@ -7,9 +7,15 @@
         98304
 %end
 
-%macro get_timestamp()
+%macro get_input()
         %push0()
         calldataload
+%end
+
+%macro get_timestamp_index()
+        push3 historical_roots_modulus()
+        timestamp
+        mod
 %end
         
 # If caller is from system, jump to update.
@@ -32,13 +38,13 @@ jumpi           # []
 
 # Load stored timestamp.
 push3 historical_roots_modulus() # [hrm, time]
-%get_timestamp() # [time]
+%get_input()    # [time]
 mod             # [time_index]
 dup1            # [time_index, time_index]
 sload           # [want, time_index]
 
 # Verify stored timestamp matches input.
-%get_timestamp() # [got, want, time_index]
+%get_input() # [got, want, time_index]
 eq              # [got == want, time_index]
 iszero          # [got != want, time_index]
 push1 revert    # [revert_addr, got != want, time_index]
@@ -62,19 +68,15 @@ return
 
 update:
 jumpdest
-timestamp       # [time]
-push3 historical_roots_modulus() # [hsm, time]
-timestamp       # [time, hsm, time]
-mod             # [time_index, time]
-sstore          # []
+timestamp               # [time]
+%get_timestamp_index()  # [time_index, time]
+sstore                  # []
 
-%push0()        # [0]
-calldataload    # [root]
-push3 historical_roots_modulus() # [hsm, root]
-timestamp       # [time, hsm, root]
-mod             # [time_index, root]
+%push0()                # [0]
+calldataload            # [root]
+%get_timestamp_index()  # [time_index, root]
 push3 historical_roots_modulus() # [hsm, time_index, root]
-add             # [root_index, root]
+add                     # [root_index, root]
 sstore
 
 %push0()
