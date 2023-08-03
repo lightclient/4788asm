@@ -1,41 +1,32 @@
-# `etk`-Foundry Template
+# `4788asm`
 
-Most smart contract development tooling is geared towards using compiled
-languages, such as Solidity. These tools are extremely important when it comes
-to testing and debugging contracts, so we have developed a template for using
-`etk` with the [Forge][forge] testing framework from [Foundry][forge].
+This is an [`ekt`][etk] implementation of the EIP-4788
+system contract. It is 100 bytes once assembled.
 
-## Getting Started
+## Tests
 
-To start a new `etk` project with this template, go ahead and clone the
-repository.
+To run the tests you'll need [`foundry`][foundry] and `etk`. You can install by running:
 
 ```console
-$ git clone https://github.com/quilt/etk-foundry-template
-$ cd etk-foundry-template
+curl -L https://foundry.paradigm.xyz | bash
+cargo install --features cli etk-asm
 ```
 
-This will load the template, which is a derivative of `forge init` to work
-around the fact that Forge doesn't support custom compiler definitions. The
-most notable contribution is the script `builder-wrapper` which assembles the
-`etk` project, then injects the assembled bytecode into the testing contract
-defined at `test/Contract.t.sol.in`. Since `test/Contract.t.sol` is overwritten
-each time `build-wrapper` is called, it's important to ensure that all
-modifications are made to the `test/Contract.t.sol.in` file.
-
-To run a forge command, call the `builder-wrapper` script with the same arguments
-as Forge:
+Then the tests can be executed using the `builder-wrapper` script with the same
+arguments as [forge][forge]:
 
 ```console
 $ ./build-wrapper test
-
-[⠢] Compiling...
+[⠆] Compiling...
 No files changed, compilation skipped
 
-Running 1 test for test/Contract.t.sol:ContractTest
-[PASS] testExample() (gas: 30472)
-Test result: ok. 1 passed; 0 failed; finished in 1.76ms
+Running 2 tests for test/Contract.t.sol:ContractTest
+[PASS] testRead() (gas: 18514)
+[PASS] testUpdate() (gas: 53953)
+Test result: ok. 2 passed; 0 failed; 0 skipped; finished in 3.35ms
+Ran 1 test suites: 2 tests passed, 0 failed, 0 skipped (2 total tests)
 ```
 
-[foundry]: https://github.com/foundry-rs/foundry
+[etk]: https://github.com/quilt/etk
 [forge]: https://github.com/foundry-rs/foundry/blob/master/forge
+[foundry]: https://getfoundry.sh/
