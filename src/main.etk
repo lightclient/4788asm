@@ -29,11 +29,12 @@ jumpi
 # READ #
 ########
 
-# Check if calldata is less than 32 bytes
+# Check if calldata is exactly 32 bytes
 push1 32        # [32]
 calldatasize    # [calldatasize, 32]
-lt              # [calldatasize < 32]
-push1 revert    # [revert_addr, calldatasize < 32]
+eq              # [calldatasize == 32]
+not             # [calldatasize != 32]
+push1 revert    # [revert_addr, calldatasize != 32]
 jumpi           # []
 
 # Load stored timestamp.
