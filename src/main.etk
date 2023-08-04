@@ -70,7 +70,7 @@
         
 # Protect the submit routine by verifying the caller is equal to sysaddr().
 caller            # [caller]
-push20 sysaddr() # [sysaddr, caller] 
+push20 sysaddr()  # [sysaddr, caller] 
 eq                # [sysaddr == caller]
 push1 submit      # [submitaddr, sysaddr == caller]
 jumpi             # []
@@ -154,3 +154,7 @@ jumpdest
 %push0()
 %push0()
 revert
+
+##############
+# REVERT END #
+##############
