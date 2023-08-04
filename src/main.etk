@@ -75,7 +75,7 @@ sstore                  # []
 %push0()                # [0]
 calldataload            # [root]
 %get_timestamp_index()  # [time_index, root]
-push3 rootmod()         # [hsm, time_index, root]
+push3 rootmod()         # [hrm, time_index, root]
 add                     # [root_index, root]
 sstore
 
