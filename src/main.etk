@@ -38,7 +38,7 @@ jumpi           # []
 
 # Load stored timestamp.
 push3 rootmod() # [hrm]
-%get_input()    # [time]
+%get_input()    # [time, hrm]
 mod             # [time_index]
 dup1            # [time_index, time_index]
 sload           # [want, time_index]
