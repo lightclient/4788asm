@@ -4,47 +4,55 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../src/Contract.sol";
 
+address constant sysaddr = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
+uint256 constant rootmod = 98304;
+bytes32 constant root    = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
+
+function timestamp() view returns (bytes32) {
+        return bytes32(uint256(block.timestamp));
+}
+
+function timestamp_idx() view returns (bytes32) {
+        return bytes32(uint256(block.timestamp % rootmod));
+}
+
+function root_idx() view returns (bytes32) {
+        return bytes32(uint256(block.timestamp % rootmod + rootmod));
+}
+
 contract ContractTest is Test {
     address unit;
-    uint256 historical_roots_modulus = 98304;
 
     function setUp() public {
         bytes memory bytecode = hex"@bytecode@";
         address returned;
-
         assembly {
             returned := create(0, add(bytecode, 32), bytecode)
         }
-
         unit = returned;
     }
 
     function testRead() public {
-        assertTrue(unit != address(0));
+        vm.store(unit, timestamp_idx(), timestamp());
+        vm.store(unit, root_idx(), root);
 
-        vm.store(unit, bytes32(uint256(block.timestamp % historical_roots_modulus)), bytes32(uint256(block.timestamp)));
+        (bool ret, bytes memory data) = unit.call(bytes.concat(timestamp()));
 
-        bytes memory root = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
-        vm.store(unit, bytes32(uint256(block.timestamp % historical_roots_modulus + historical_roots_modulus)), bytes32(root));
-
-        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(uint256(block.timestamp))));
         assertTrue(ret);
-        assertEq(data, bytes(root));
+        assertEq(data, bytes.concat(root));
     }
 
     function testUpdate() public {
-        assertTrue(unit != address(0));
-
-        vm.prank(0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE);
-        (bool ret, bytes memory data) = unit.call(hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6");
+        vm.prank(sysaddr);
+        (bool ret, bytes memory data) = unit.call(bytes.concat(root));
 
         assertTrue(ret);
         assertEq(data, hex"");
 
-        bytes32 timestamp = vm.load(unit, bytes32(uint256(block.timestamp % 98304)));
-        assertEq(timestamp, bytes32(uint256(block.timestamp)));
+        bytes32 got = vm.load(unit, timestamp_idx());
+        assertEq(got, timestamp());
 
-        bytes32 root = vm.load(unit, bytes32(uint256(block.timestamp % 98304 + 98304)));
-        assertEq(root, bytes32(hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6"));
+        got = vm.load(unit, root_idx());
+        assertEq(got, root);
     }
 }
