@@ -1,48 +1,54 @@
+# push0 pushes zero to the stack.
+# TODO: replace with push0 when it's added to etk
 %macro push0()
-        # TODO: replace with push0 when it's added
         push1 0
 %end
 
+# rootmod returns the HISTORICAL_ROOTS_MODULUS as defined in the EIP.
 %def rootmod()
         98304
 %end
 
+# get_input loads the first word of input from calldata.
 %macro get_input()
         %push0()
         calldataload
 %end
 
+# get_timestamp_index calculates the index a timestamp should be stored at.
 %macro get_timestamp_index()
         push3 rootmod()
         timestamp
         mod
 %end
         
-# If caller is from system, jump to lbl_update.
+# If caller is from system, jump to update_func.
 caller
 push20 0xfffffffffffffffffffffffffffffffffffffffe
 eq
-push1 lbl_update
+push1 update_func
 jumpi
 
 ########
 # READ #
 ########
 
-# Check if calldata is less than 32 bytes
+# Check if calldata is equal to 32 bytes.
 push1 32        # [32]
 calldatasize    # [calldatasize, 32]
 eq              # [calldatasize == 32]
+
+# Jump to continue if length-check passed, otherwise revert.
 push1 load      # [revert_addr, calldatasize == 32]
-# Jump to continue if length-check passed, otherwise revert
 jumpi           # []
-%push0()
-%push0()
-revert
 
+%push0()        # [0]
+%push0()        # [0, 0]
+revert          # []
 
-load: 
 # Load stored timestamp.
+load: 
+jumpdest        # []
 push3 rootmod() # [hrm]
 %get_input()    # [time, hrm]
 mod             # [time_index]
@@ -66,14 +72,14 @@ mstore          # []
 
 exit: 
 push1 32        # [size]
-%push0()        # [offset]
-return
+%push0()        # [offset, size]
+return          # []
 
 ##########
 # UPDATE #
 ##########
 
-lbl_update:
+update_func:
 jumpdest
 timestamp               # [time]
 %get_timestamp_index()  # [time_index, time]
@@ -84,6 +90,6 @@ calldataload            # [root]
 %get_timestamp_index()  # [time_index, root]
 push3 rootmod()         # [hrm, time_index, root]
 add                     # [root_index, root]
-sstore
+sstore                  # []
 
-stop
+stop                    # []
