@@ -21,6 +21,15 @@
         timestamp
         mod
 %end
+
+# revert_if_neq reverts if the top two stack arguments are not equal
+# stack: [a, b] (assumed precondition)
+%macro revert_if_neq() 
+        eq              # [a == b]
+        iszero          # [a != b]
+        push1 revert    # [revert, a != b]
+        jumpi           # []
+%end
         
 # If caller is from system, jump to update.
 caller
@@ -47,10 +56,7 @@ calldataload    # [calldataload]
 push1 224       # [224, calldataload]
 shr             # [calldataload >> 224]
 %function_sig() # [function_sig(), calldataload >> 224]
-eq              # [function_sig() == calldataload >> 224]
-iszero             # [function_sig() != calldataload >> 224]
-push1 revert    # [revert_addr, function_sig() != calldataload >> 224]
-jumpi           # []
+%revert_if_neq()
 
 # Load stored timestamp.
 push3 historical_roots_modulus() # [hrm, time]
@@ -61,10 +67,7 @@ sload           # [want, time_index]
 
 # Verify stored timestamp matches input.
 %get_input() # [got, want, time_index]
-eq              # [got == want, time_index]
-iszero          # [got != want, time_index]
-push1 revert    # [revert_addr, got != want, time_index]
-jumpi           # [time_index]
+%revert_if_neq()
 
 # Extend index to get root index.
 push3 historical_roots_modulus() # [hsm, time_index]
