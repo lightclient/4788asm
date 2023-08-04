@@ -79,9 +79,7 @@ push3 historical_roots_modulus() # [hsm, time_index, root]
 add                     # [root_index, root]
 sstore
 
-%push0()
-%push0()
-return
+stop
 
 ##########
 # REVERT #
