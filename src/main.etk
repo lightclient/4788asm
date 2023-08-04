@@ -40,6 +40,7 @@ push1 28
 shr
 %function_sig() # []
 eq
+not
 push1 revert    # [revert_addr, calldatasize < 32]
 jumpi           # []
 
