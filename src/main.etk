@@ -3,7 +3,7 @@
         push1 0
 %end
 
-%def roodmod()
+%def rootmod()
         98304
 %end
 
