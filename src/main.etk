@@ -51,7 +51,7 @@ push1 revert    # [revert_addr, got != want, time_index]
 jumpi           # [time_index]
 
 # Extend index to get root index.
-push3 rootmod() # [hsm, time_index]
+push3 rootmod() # [hrm, time_index]
 add             # [root_index]
 sload           # [root]
 
