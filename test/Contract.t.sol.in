@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../src/Contract.sol";
 
+address constant addr = 0x000000000000000000000000000000000000000b;
 address constant sysaddr = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
 uint256 constant rootmod = 98304;
 bytes32 constant root    = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
@@ -24,12 +25,8 @@ contract ContractTest is Test {
     address unit;
 
     function setUp() public {
-        bytes memory bytecode = hex"@bytecode@";
-        address returned;
-        assembly {
-            returned := create(0, add(bytecode, 32), bytecode)
-        }
-        unit = returned;
+        vm.etch(addr, hex"@bytecode@");
+        unit = addr;
     }
 
     function testRead() public {
