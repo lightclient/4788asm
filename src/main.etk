@@ -7,8 +7,12 @@
         98304
 %end
 
+%macro function_sig() 
+        push4 0x9507d39a
+%end
+
 %macro get_input()
-        %push0()
+        push1 4
         calldataload
 %end
 
@@ -29,10 +33,14 @@ jumpi
 # READ #
 ########
 
-# Check if calldata is less than 32 bytes
-push1 32        # [32]
-calldatasize    # [calldatasize, 32]
-lt              # [calldatasize < 32]
+# Check if calldata has the function signature
+push1 0         # [0]
+calldataload    # [calldataload]
+push1 224
+shr
+%function_sig() # []
+eq
+not
 push1 revert    # [revert_addr, calldatasize < 32]
 jumpi           # []
 
