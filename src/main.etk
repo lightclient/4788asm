@@ -18,11 +18,11 @@
         mod
 %end
         
-# If caller is from system, jump to update.
+# If caller is from system, jump to lbl_update.
 caller
 push20 0xfffffffffffffffffffffffffffffffffffffffe
 eq
-push1 update
+push1 lbl_update
 jumpi
 
 ########
@@ -32,10 +32,16 @@ jumpi
 # Check if calldata is less than 32 bytes
 push1 32        # [32]
 calldatasize    # [calldatasize, 32]
-lt              # [calldatasize < 32]
-push1 revert    # [revert_addr, calldatasize < 32]
+eq              # [calldatasize == 32]
+push1 load      # [revert_addr, calldatasize == 32]
+# Jump to continue if length-check passed, otherwise revert
 jumpi           # []
+%push0()
+%push0()
+revert
 
+
+load: 
 # Load stored timestamp.
 push3 rootmod() # [hrm]
 %get_input()    # [time, hrm]
@@ -47,7 +53,7 @@ sload           # [want, time_index]
 %get_input()    # [got, want, time_index]
 eq              # [got == want, time_index]
 iszero          # [got != want, time_index]
-push1 revert    # [revert_addr, got != want, time_index]
+push1 exit      # [revert_addr, got != want, time_index]
 jumpi           # [time_index]
 
 # Extend index to get root index.
@@ -58,6 +64,7 @@ sload           # [root]
 %push0()        # [0, root]
 mstore          # []
 
+exit: 
 push1 32        # [size]
 %push0()        # [offset]
 return
@@ -66,7 +73,7 @@ return
 # UPDATE #
 ##########
 
-update:
+lbl_update:
 jumpdest
 timestamp               # [time]
 %get_timestamp_index()  # [time_index, time]
@@ -79,16 +86,4 @@ push3 rootmod()         # [hrm, time_index, root]
 add                     # [root_index, root]
 sstore
 
-%push0()
-%push0()
-return
-
-##########
-# REVERT #
-##########
-
-revert:
-jumpdest
-%push0()
-%push0()
-revert
+stop
