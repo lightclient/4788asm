@@ -12,8 +12,8 @@
 %end
 
 %macro get_input()
-        push1 4
-        calldataload # calldataloads[4:36] (timestamp)
+        push1 4      # [4]
+        calldataload # [calldata[4:36]]
 %end
 
 %macro get_timestamp_index()
@@ -33,16 +33,24 @@ jumpi
 # READ #
 ########
 
+# Check if calldata is 36 bytes 
+push1 36        # [36]
+calldatasize    # [calldatasize, 36]
+eq              # [calldatasize == 36]
+not             # [calldatasize != 36]
+push1 revert    # [revert_addr, calldatasize != 36]
+jumpi           # []
+
 # Check if calldata has the function signature
 push1 0         # [0]
 calldataload    # [calldataload]
-push1 224       #
-shr             # shift 224 bits to right, stack now has [function_sig] of the call (first 4 bytes)
-%function_sig() #
-eq              # check if function_sig equals the first 4 bytes of calldata
-not             # invert
-push1 revert    #
-jumpi           # jumpi to revert iff function_sig != first 4 bytes of calldata
+push1 224       # [224, calldataload]
+shr             # [calldataload >> 224]
+%function_sig() # [function_sig(), calldataload >> 224]
+eq              # [function_sig() == calldataload >> 224]
+not             # [function_sig() != calldataload >> 224]
+push1 revert    # [revert_addr, function_sig() != calldataload >> 224]
+jumpi           # []
 
 # Load stored timestamp.
 push3 historical_roots_modulus() # [hrm, time]
