@@ -1,10 +1,42 @@
+#  _  _     ___   _  _    _  _                          
+# | || |   ( _ ) | || |  | || |    __ _  ___  _ __ ___  
+# | || |_  / _ \ | || |_ | || |_  / _` |/ __|| '_ ` _ \ 
+# |__   _|| (_) ||__   _||__   _|| (_| |\__ \| | | | | |
+#    |_|   \___/    |_|     |_|   \__,_||___/|_| |_| |_|
+#
+# This is an implementation of EIP-4788's predeploy contract. It implements two
+# ring buffers to create bounded beacon root lookup. The first ring buffer is a
+# timestamp % rootmod -> timestamp mapping. This is used to ensure timestamp
+# argument actually matches the stored root and isn't different dividend. The
+# second ring buffer store the beacon root. It's also keyed by timestamp %
+# rootmod and the shifted right by rootmod so the two don't overlap.
+#
+# The ring buffers can be visualized as follows:
+#
+#  rootmode = 10
+# |--------------|--------------|
+# 0             10              20
+#   timestamps     beacon roots
+
+
+# -----------------------------------------------------------------------------
+# MACROS ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+# push0 pushes zero to the stack.
+# TODO: replace with push0 when it's added to etk
 %macro push0()
-        # TODO: replace with push0 when it's added
         push1 0
 %end
 
-%def historical_roots_modulus()
+# rootmod returns the HISTORICAL_ROOTS_MODULUS as defined in the EIP.
+%def rootmod()
         98304
+%end
+
+# sysaddr is the address which calls the contract to submit a new root.
+%def sysaddr()
+        0xfffffffffffffffffffffffffffffffffffffffe
 %end
 
 %macro function_sig() 
@@ -16,10 +48,11 @@
         calldataload # [calldata[4:36]]
 %end
 
+# get_timestamp_index calculates the index a timestamp should be stored at.
 %macro get_timestamp_index()
-        push3 historical_roots_modulus()
-        timestamp
-        mod
+        push3 rootmod() # [rootmod]
+        timestamp       # [timestamp, rootmod]
+        mod             # [timestamp % rootmod]
 %end
 
 # revert_if_neq reverts if the top two stack arguments are not equal
@@ -30,25 +63,25 @@
         push1 revert    # [revert, a != b]
         jumpi           # []
 %end
-        
-# If caller is from system, jump to update.
-caller
-push20 0xfffffffffffffffffffffffffffffffffffffffe
-eq
-push1 update
-jumpi
 
-########
-# READ #
-########
+# -----------------------------------------------------------------------------
+# MACROS END ------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+        
+# Protect the submit routine by verifying the caller is equal to sysaddr().
+caller            # [caller]
+push20 sysaddr() # [sysaddr, caller] 
+eq                # [sysaddr == caller]
+push1 submit      # [submitaddr, sysaddr == caller]
+jumpi             # []
+
+# Fallthrough if addresses don't match -- this means the caller intends to read
+# a root.
 
 # Check if calldata is 36 bytes 
 push1 36        # [36]
 calldatasize    # [calldatasize, 36]
-eq              # [calldatasize == 36]
-iszero             # [calldatasize != 36]
-push1 revert    # [revert_addr, calldatasize != 36]
-jumpi           # []
+%revert_if_neq()
 
 # Check if calldata has the function signature
 push1 0         # [0]
@@ -59,34 +92,42 @@ shr             # [calldataload >> 224]
 %revert_if_neq()
 
 # Load stored timestamp.
-push3 historical_roots_modulus() # [hrm, time]
-%get_input()    # [time]
+load: 
+jumpdest        # []
+push3 rootmod() # [rootmod]
+%get_input()    # [time, rootmod]
 mod             # [time_index]
 dup1            # [time_index, time_index]
-sload           # [want, time_index]
+sload           # [timestamp, time_index]
 
 # Verify stored timestamp matches input.
 %get_input() # [got, want, time_index]
 %revert_if_neq()
 
 # Extend index to get root index.
-push3 historical_roots_modulus() # [hsm, time_index]
+push3 rootmod() # [rootmod, time_index]
 add             # [root_index]
 sload           # [root]
 
 %push0()        # [0, root]
 mstore          # []
 
+exit: 
+jumpdest        # []
 push1 32        # [size]
-%push0()        # [offset]
-return
+%push0()        # [offset, size]
+return          # []
 
-##########
-# UPDATE #
-##########
+# -----------------------------------------------------------------------------
+# READ ROOT END ---------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-update:
-jumpdest
+# -----------------------------------------------------------------------------
+# SUBMIT ----------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
+submit:
+jumpdest                # []
 timestamp               # [time]
 %get_timestamp_index()  # [time_index, time]
 sstore                  # []
@@ -94,13 +135,15 @@ sstore                  # []
 %push0()                # [0]
 calldataload            # [root]
 %get_timestamp_index()  # [time_index, root]
-push3 historical_roots_modulus() # [hsm, time_index, root]
+push3 rootmod()         # [hrm, time_index, root]
 add                     # [root_index, root]
-sstore
+sstore                  # []
 
-%push0()
-%push0()
-return
+stop                    # []
+
+# -----------------------------------------------------------------------------
+# SUBMIT END ------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 ##########
 # REVERT #
