@@ -117,7 +117,7 @@ Test result: ok. 2 passed; 0 failed; 0 skipped; finished in 3.35ms
 Ran 1 test suites: 2 tests passed, 0 failed, 0 skipped (2 total tests)
 ```
 
-A step-by-step debugger can be brought up using `./build-wrapper test --debug`.
+A step-by-step debugger can be brought up using `./build-wrapper test --debug {test name}`.
 
 [cfg]: https://en.wikipedia.org/wiki/Control-flow_graph
 [etk]: https://github.com/quilt/etk

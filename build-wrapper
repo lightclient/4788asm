@@ -9,4 +9,4 @@ sed \
     -e "s/@bytecode@/$BYTECODE/" \
     "$SCRIPT_DIR/test/Contract.t.sol.in" > "$SCRIPT_DIR/test/Contract.t.sol"
 
-forge "$@"
+forge "$@" --evm-version shanghai
