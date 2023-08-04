@@ -37,7 +37,7 @@ push1 revert    # [revert_addr, calldatasize < 32]
 jumpi           # []
 
 # Load stored timestamp.
-push3 rootmod() # [hrm, time]
+push3 rootmod() # [hrm]
 %get_input()    # [time]
 mod             # [time_index]
 dup1            # [time_index, time_index]
