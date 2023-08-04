@@ -37,7 +37,7 @@ jumpi
 push1 36        # [36]
 calldatasize    # [calldatasize, 36]
 eq              # [calldatasize == 36]
-not             # [calldatasize != 36]
+iszero             # [calldatasize != 36]
 push1 revert    # [revert_addr, calldatasize != 36]
 jumpi           # []
 
@@ -48,7 +48,7 @@ push1 224       # [224, calldataload]
 shr             # [calldataload >> 224]
 %function_sig() # [function_sig(), calldataload >> 224]
 eq              # [function_sig() == calldataload >> 224]
-not             # [function_sig() != calldataload >> 224]
+iszero             # [function_sig() != calldataload >> 224]
 push1 revert    # [revert_addr, function_sig() != calldataload >> 224]
 jumpi           # []
 

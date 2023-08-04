@@ -40,7 +40,7 @@ contract ContractTest is Test {
         bytes memory root = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
         vm.store(unit, bytes32(uint256(block.timestamp % historical_roots_modulus + historical_roots_modulus)), bytes32(root));
 
-        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes4(0x01020304), bytes32(uint256(block.timestamp))));
+        (bool ret, /*bytes memory data*/) = unit.call(bytes.concat(bytes4(0x01020304), bytes32(uint256(block.timestamp))));
         assertFalse(ret);
     }
 
