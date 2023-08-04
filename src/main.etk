@@ -3,7 +3,7 @@
         push1 0
 %end
 
-%def historical_roots_modulus()
+%def roodmod()
         98304
 %end
 
@@ -13,7 +13,7 @@
 %end
 
 %macro get_timestamp_index()
-        push3 historical_roots_modulus()
+        push3 rootmod()
         timestamp
         mod
 %end
@@ -37,21 +37,21 @@ push1 revert    # [revert_addr, calldatasize < 32]
 jumpi           # []
 
 # Load stored timestamp.
-push3 historical_roots_modulus() # [hrm, time]
+push3 rootmod() # [hrm, time]
 %get_input()    # [time]
 mod             # [time_index]
 dup1            # [time_index, time_index]
 sload           # [want, time_index]
 
 # Verify stored timestamp matches input.
-%get_input() # [got, want, time_index]
+%get_input()    # [got, want, time_index]
 eq              # [got == want, time_index]
 iszero          # [got != want, time_index]
 push1 revert    # [revert_addr, got != want, time_index]
 jumpi           # [time_index]
 
 # Extend index to get root index.
-push3 historical_roots_modulus() # [hsm, time_index]
+push3 rootmod() # [hsm, time_index]
 add             # [root_index]
 sload           # [root]
 
@@ -75,7 +75,7 @@ sstore                  # []
 %push0()                # [0]
 calldataload            # [root]
 %get_timestamp_index()  # [time_index, root]
-push3 historical_roots_modulus() # [hsm, time_index, root]
+push3 rootmod()         # [hsm, time_index, root]
 add                     # [root_index, root]
 sstore
 
