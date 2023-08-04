@@ -36,11 +36,10 @@ jumpi
 # Check if calldata has the function signature
 push1 0         # [0]
 calldataload    # [calldataload]
-push1 224
+push1 28
 shr
 %function_sig() # []
 eq
-not
 push1 revert    # [revert_addr, calldatasize < 32]
 jumpi           # []
 
