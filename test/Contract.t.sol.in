@@ -33,10 +33,21 @@ contract ContractTest is Test {
         vm.store(unit, timestamp_idx(), timestamp());
         vm.store(unit, root_idx(), root);
 
-        (bool ret, bytes memory data) = unit.call(bytes.concat(timestamp()));
+        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes4(0x9507d39a), bytes32(uint256(block.timestamp))));
 
         assertTrue(ret);
         assertEq(data, bytes.concat(root));
+    }
+
+    function testReadWrongSig() public {
+        assertTrue(unit != address(0));
+
+        vm.store(unit, timestamp_idx(), timestamp());
+        vm.store(unit, root_idx(), root);
+
+        (bool ret, /*bytes memory data*/) = unit.call(bytes.concat(bytes4(0x01020304), bytes32(uint256(block.timestamp))));
+        
+        assertFalse(ret);
     }
 
     function testUpdate() public {
