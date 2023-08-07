@@ -76,7 +76,7 @@ calldatasize    # [calldatasize, 32]
 eq              # [calldatasize == 32]
 
 # Jump to continue if length-check passed, otherwise revert.
-push1 loadts    # [load_addr, calldatasize == 32]
+push1 loadts    # [loadts_addr, calldatasize == 32]
 jumpi           # []
 %revert()       # []
 
@@ -92,7 +92,7 @@ sload           # [timestamp, time_index]
 # Verify stored timestamp matches input.
 %get_input()    # [input, timestamp, time_index]
 eq              # [input == timestamp, time_index]
-push1 loadroot     # [exit_addr, got != want, time_index]
+push1 loadroot  # [loadroot_addr, input == timestamp, time_index]
 jumpi           # [time_index]
 %revert()       # []
 
