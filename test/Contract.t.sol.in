@@ -41,6 +41,42 @@ contract ContractTest is Test {
         assertEq(data, bytes.concat(root));
     }
 
+    function testReadBadCalldataSize() public {
+        uint256 time = block.timestamp;
+
+        // Store timestamp and root at expected indexes.
+        vm.store(unit, timestamp_idx(), bytes32(time));
+        vm.store(unit, root_idx(), root);
+
+        // Call with 0 byte arguement.
+        (bool ret, bytes memory data) = unit.call(hex"");
+        assertFalse(ret);
+        assertEq(data, hex"");
+
+        // Call with 31 byte arguement.
+        (ret, data) = unit.call(hex"00000000000000000000000000000000000000000000000000000000001337");
+        assertFalse(ret);
+        assertEq(data, hex"");
+
+        // Call with 33 byte arguement.
+        (ret, data) = unit.call(hex"000000000000000000000000000000000000000000000000000000000000001337");
+        assertFalse(ret);
+        assertEq(data, hex"");
+    }
+
+    function testReadWrongTimestamp() public {
+        uint256 time = block.timestamp;
+
+        // Store timestamp and root at expected indexes.
+        vm.store(unit, timestamp_idx(), bytes32(time));
+        vm.store(unit, root_idx(), root);
+
+        // Read root associated with timestamp wrapped around rootmod once.
+        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(time+rootmod)));
+        assertFalse(ret);
+        assertEq(data, hex"");
+    }
+
     // testUpdate verifies the set functionality of the contract.
     function testUpdate() public {
         // Simulate pre-block call to set root.

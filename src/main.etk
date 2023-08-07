@@ -47,9 +47,7 @@
 %end
 
 %macro revert()
-        push0           # [0]
-        push0           # [0, 0]
-        revert          # []
+
 %end
 
 # -----------------------------------------------------------------------------
@@ -58,7 +56,7 @@
         
 # Protect the submit routine by verifying the caller is equal to sysaddr().
 caller            # [caller]
-push20 sysaddr() # [sysaddr, caller] 
+push20 sysaddr()  # [sysaddr, caller] 
 eq                # [sysaddr == caller]
 push1 submit      # [submitaddr, sysaddr == caller]
 jumpi             # []
@@ -74,15 +72,13 @@ jumpi             # []
 push1 32        # [32]
 calldatasize    # [calldatasize, 32]
 eq              # [calldatasize == 32]
+iszero          # [calldatasize != 32]
 
 # Jump to continue if length-check passed, otherwise revert.
-push1 load      # [load_addr, calldatasize == 32]
+push1 revert    # [load_addr, calldatasize == 32]
 jumpi           # []
-%revert()       # []
 
 # Load stored timestamp.
-load: 
-jumpdest        # []
 push3 rootmod() # [rootmod]
 %get_input()    # [time, rootmod]
 mod             # [time_index]
@@ -93,7 +89,7 @@ sload           # [timestamp, time_index]
 %get_input()    # [input, timestamp, time_index]
 eq              # [input == timestamp, time_index]
 iszero          # [input != timestamp, time_index]
-push1 exit      # [exit_addr, got != want, time_index]
+push1 revert    # [exit_addr, got != want, time_index]
 jumpi           # [time_index]
 
 # Extend index to get root index.
@@ -104,11 +100,16 @@ sload           # [root]
 push0           # [0, root]
 mstore          # []
 
-exit: 
-jumpdest        # []
 push1 32        # [size]
 push0           # [offset, size]
 return          # []
+
+revert: 
+jumpdest        # []
+push0           # [0]
+push0           # [0, 0]
+revert          # []
+
 
 # -----------------------------------------------------------------------------
 # READ ROOT END ---------------------------------------------------------------
