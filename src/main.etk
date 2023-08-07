@@ -13,7 +13,7 @@
 #
 # The ring buffers can be visualized as follows:
 #
-#  rootmode = 10
+#  rootmod = 10
 # |--------------|--------------|
 # 0             10              20
 #   timestamps     beacon roots
@@ -47,7 +47,9 @@
 %end
 
 %macro revert()
-
+        push0           # [0]
+        push0           # [0, 0]
+        revert          # []
 %end
 
 # -----------------------------------------------------------------------------
@@ -72,13 +74,15 @@ jumpi             # []
 push1 32        # [32]
 calldatasize    # [calldatasize, 32]
 eq              # [calldatasize == 32]
-iszero          # [calldatasize != 32]
 
 # Jump to continue if length-check passed, otherwise revert.
-push1 revert    # [load_addr, calldatasize == 32]
+push1 loadts    # [load_addr, calldatasize == 32]
 jumpi           # []
+%revert()       # []
 
 # Load stored timestamp.
+loadts:
+jumpdest
 push3 rootmod() # [rootmod]
 %get_input()    # [time, rootmod]
 mod             # [time_index]
@@ -88,11 +92,13 @@ sload           # [timestamp, time_index]
 # Verify stored timestamp matches input.
 %get_input()    # [input, timestamp, time_index]
 eq              # [input == timestamp, time_index]
-iszero          # [input != timestamp, time_index]
-push1 revert    # [exit_addr, got != want, time_index]
+push1 loadroot     # [exit_addr, got != want, time_index]
 jumpi           # [time_index]
+%revert()       # []
 
 # Extend index to get root index.
+loadroot:
+jumpdest
 push3 rootmod() # [rootmod, time_index]
 add             # [root_index]
 sload           # [root]
@@ -103,13 +109,6 @@ mstore          # []
 push1 32        # [size]
 push0           # [offset, size]
 return          # []
-
-revert: 
-jumpdest        # []
-push0           # [0]
-push0           # [0, 0]
-revert          # []
-
 
 # -----------------------------------------------------------------------------
 # READ ROOT END ---------------------------------------------------------------
