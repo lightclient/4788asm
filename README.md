@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $ eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe146048576020361460265760006000fd5b6201800060003506805460003514156042576201800001546000525b60206000f35b426201800042065560003562018000420662018000015500
+3373fffffffffffffffffffffffffffffffffffffffe14604457602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f5260205ff35b42620180004206555f3562018000420662018000015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -31,59 +31,61 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x48
+  17:   push1 0x44
   19:   jumpi
 
   1a:   push1 0x20
   1c:   calldatasize
   1d:   eq
-  1e:   push1 0x26
+  1e:   push1 0x24
   20:   jumpi
 
-  21:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  23:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  25:   revert
+  21:   push0
+  22:   push0
+  23:   revert
 
-  26:   jumpdest
-  27:   push3 0x018000
-  2b:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  2d:   calldataload
-  2e:   mod
-  2f:   dup1
-  30:   sload
-  31:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  33:   calldataload
-  34:   eq
-  35:   iszero
-  36:   push1 0x42
-  38:   jumpi
+  24:   jumpdest
+  25:   push3 0x018000
+  29:   push0
+  2a:   calldataload
+  2b:   mod
+  2c:   dup1
+  2d:   sload
+  2e:   push0
+  2f:   calldataload
+  30:   eq
+  31:   push1 0x37
+  33:   jumpi
 
-  39:   push3 0x018000
-  3d:   add
-  3e:   sload
-  3f:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  41:   mstore
+  34:   push0
+  35:   push0
+  36:   revert
 
-  42:   jumpdest
-  43:   push1 0x20
-  45:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  47:   return
+  37:   jumpdest
+  38:   push3 0x018000
+  3c:   add
+  3d:   sload
+  3e:   push0
+  3f:   mstore
+  40:   push1 0x20
+  42:   push0
+  43:   return
 
-  48:   jumpdest
-  49:   timestamp
-  4a:   push3 0x018000
-  4e:   timestamp
-  4f:   mod
-  50:   sstore
-  51:   push1 0x00 # https://www.4byte.directory/signatures/?bytes4_signature=0x00000000
-  53:   calldataload
-  54:   push3 0x018000
-  58:   timestamp
-  59:   mod
-  5a:   push3 0x018000
-  5e:   add
-  5f:   sstore
-  60:   stop
+  44:   jumpdest
+  45:   timestamp
+  46:   push3 0x018000
+  4a:   timestamp
+  4b:   mod
+  4c:   sstore
+  4d:   push0
+  4e:   calldataload
+  4f:   push3 0x018000
+  53:   timestamp
+  54:   mod
+  55:   push3 0x018000
+  59:   add
+  5a:   sstore
+  5b:   stop
 ```
 
 ### Control-flow Graph
