@@ -99,7 +99,7 @@ evm-cfg $(eas src/main.etk) | dot -Tpng -o cfg.png
 *note: you will also need [`graphviz`][graphviz] installed to use the `dot` utility.*
 
 ###### `cfg.png`
-![cfg.png][./docs/cfg.png]
+![cfg.png](./docs/cfg.png)
 
 ## Testing
 
