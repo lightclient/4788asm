@@ -49,59 +49,59 @@
 # MACROS END ------------------------------------------------------------------
 # -----------------------------------------------------------------------------
         
-# Protect the submit routine by verifying the caller is equal to sysaddr().
-caller            # [caller]
-push20 sysaddr()  # [sysaddr, caller] 
-eq                # [sysaddr == caller]
-push1 submit      # [submitaddr, sysaddr == caller]
-jumpi             # []
+        # Protect the submit routine by verifying the caller is equal to sysaddr().
+        caller            # [caller]
+        push20 sysaddr()  # [sysaddr, caller] 
+        eq                # [sysaddr == caller]
+        push1 submit      # [submitaddr, sysaddr == caller]
+        jumpi             # []
 
-# Fallthrough if addresses don't match -- this means the caller intends to read
-# a root.
+        # Fallthrough if addresses don't match -- this means the caller intends to read
+        # a root.
 
 # -----------------------------------------------------------------------------
 # READ ROOT -------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# Check if calldata is equal to 32 bytes.
-push1 32        # [32]
-calldatasize    # [calldatasize, 32]
-eq              # [calldatasize == 32]
+        # Check if calldata is equal to 32 bytes.
+        push1 32        # [32]
+        calldatasize    # [calldatasize, 32]
+        eq              # [calldatasize == 32]
 
-# Jump to continue if length-check passed, otherwise revert.
-push1 loadts    # [loadts_addr, calldatasize == 32]
-jumpi           # []
-%revert()       # []
+        # Jump to continue if length-check passed, otherwise revert.
+        push1 loadts    # [loadts_addr, calldatasize == 32]
+        jumpi           # []
+        %revert()       # []
 
 # Load stored timestamp.
 loadts:
-jumpdest
-push3 rootmod() # [rootmod]
-%get_input()    # [time, rootmod]
-mod             # [time_index]
-dup1            # [time_index, time_index]
-sload           # [timestamp, time_index]
+        jumpdest
+        push3 rootmod() # [rootmod]
+        %get_input()    # [time, rootmod]
+        mod             # [time_index]
+        dup1            # [time_index, time_index]
+        sload           # [timestamp, time_index]
 
-# Verify stored timestamp matches input.
-%get_input()    # [input, timestamp, time_index]
-eq              # [input == timestamp, time_index]
-push1 loadroot  # [loadroot_addr, input == timestamp, time_index]
-jumpi           # [time_index]
-%revert()       # []
+        # Verify stored timestamp matches input.
+        %get_input()    # [input, timestamp, time_index]
+        eq              # [input == timestamp, time_index]
+        push1 loadroot  # [loadroot_addr, input == timestamp, time_index]
+        jumpi           # [time_index]
+        %revert()       # []
 
 # Extend index to get root index.
 loadroot:
-jumpdest
-push3 rootmod() # [rootmod, time_index]
-add             # [root_index]
-sload           # [root]
+        jumpdest
+        push3 rootmod() # [rootmod, time_index]
+        add             # [root_index]
+        sload           # [root]
 
-push0           # [0, root]
-mstore          # []
+        push0           # [0, root]
+        mstore          # []
 
-push1 32        # [size]
-push0           # [offset, size]
-return          # []
+        push1 32        # [size]
+        push0           # [offset, size]
+        return          # []
 
 # -----------------------------------------------------------------------------
 # READ ROOT END ---------------------------------------------------------------
@@ -112,25 +112,25 @@ return          # []
 # -----------------------------------------------------------------------------
 
 submit:
-jumpdest                # []
+        jumpdest                # []
 
-# calculates the index the timestamp should be stored at (time_index = (time % rootmod).
-push3 rootmod()         # [rootmod]
-timestamp               # [time, rootmod]
-mod                     # [time % rootmod]
+        # calculates the index the timestamp should be stored at (time_index = (time % rootmod).
+        push3 rootmod()         # [rootmod]
+        timestamp               # [time, rootmod]
+        mod                     # [time % rootmod]
 
-timestamp               # [time, time_index]
-dup2                    # [time_index, time, time_index]
-sstore                  # [time_index]
+        timestamp               # [time, time_index]
+        dup2                    # [time_index, time, time_index]
+        sstore                  # [time_index]
 
-push0                   # [0, time_index]
-calldataload            # [root, time_index]
-swap1                   # [time_index, root]
-push3 rootmod()         # [rootmod, time_index, root]
-add                     # [root_index, root]
-sstore                  # []
+        push0                   # [0, time_index]
+        calldataload            # [root, time_index]
+        swap1                   # [time_index, root]
+        push3 rootmod()         # [rootmod, time_index, root]
+        add                     # [root_index, root]
+        sstore                  # []
 
-stop                    # []
+        stop                    # []
 
 # -----------------------------------------------------------------------------
 # SUBMIT END ------------------------------------------------------------------
