@@ -126,7 +126,7 @@ sstore                  # [time_index]
 push0                   # [0, time_index]
 calldataload            # [root, time_index]
 swap1                   # [time_index, root]
-push3 rootmod()         # [hrm, time_index, root]
+push3 rootmod()         # [rootmod, time_index, root]
 add                     # [root_index, root]
 sstore                  # []
 
