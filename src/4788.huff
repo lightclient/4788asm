@@ -77,11 +77,11 @@
 
     submit:
         //-> Entry stack: []
-        timestamp      // [time]
-        [ROOT_MOD]     // [ROOT_MOD, time]
-        timestamp      // [time, ROOT_MOD, time]
-        mod            // [time_index, time]
-        swap1 dup2     // [time_index, time, time_index]
+        [ROOT_MOD]     // [ROOT_MOD]
+        timestamp      // [time, ROOT_MOD]
+        mod            // [time_index]
+        timestamp      // [time, time_index]
+        dup2           // [time_index, time, time_index]
         sstore         // [time_index]
 
         0x00           // [0x00, time_index]
