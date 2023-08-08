@@ -60,7 +60,7 @@ start:
         caller           # [caller]
         push20 sysaddr() # [sysaddr, caller] 
         eq               # [sysaddr == caller]
-        push1 submit     # [submitaddr, sysaddr == caller]
+        push1 submit     # [submit_lbl, sysaddr == caller]
         jumpi            # []
 
         # Fallthrough if addresses don't match -- this means the caller intends
@@ -72,12 +72,12 @@ start:
         eq               # [calldatasize == 32]
 
         # Jump to continue if length-check passed, otherwise revert.
-        push1 loadts     # [loadts_addr, calldatasize == 32]
+        push1 loadtime   # [loadtime_lbl, calldatasize == 32]
         jumpi            # []
         %revert()        # []
 
 
-loadts:
+loadtime:
         # Compute the timestamp index and load from storage.
         jumpdest         # []
         push3 rootmod()  # [rootmod]
@@ -87,10 +87,11 @@ loadts:
         sload            # [timestamp, time_index]
 
         # Verify stored timestamp matches input timestamp. It's possible these
-        # don't match if the slot has been overwritten by the ring buffer.
+        # don't match if the slot has been overwritten by the ring buffer or if
+        # the timestamp input wasn't a valid previous timestamp.
         %get_input()     # [input, timestamp, time_index]
         eq               # [input == timestamp, time_index]
-        push1 loadroot   # [loadroot_addr, input == timestamp, time_index]
+        push1 loadroot   # [loadroot_lbl, input == timestamp, time_index]
         jumpi            # [time_index]
         %revert()        # []
 

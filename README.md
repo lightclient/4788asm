@@ -11,7 +11,7 @@ repository's assembly you will need to install [`foundry`][foundry] and
 
 ```console
 $ curl -L https://foundry.paradigm.xyz | bash
-$ cargo install --features cli etk-asm etk-dasm etk-analyze
+$ cargo install --features cli etk-asm etk-dasm
 ```
 
 ## Building
@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $ eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe14604457602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f5260205ff35b42620180004206555f3562018000420662018000015500
+3373fffffffffffffffffffffffffffffffffffffffe14604357602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f52595ff35b6201800042064281555f359062018000015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -31,7 +31,7 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x44
+  17:   push1 0x43
   19:   jumpi
 
   1a:   push1 0x20
@@ -67,40 +67,39 @@ $ disease --code 0x$(eas src/main.etk)
   3d:   sload
   3e:   push0
   3f:   mstore
-  40:   push1 0x20
-  42:   push0
-  43:   return
+  40:   msize
+  41:   push0
+  42:   return
 
-  44:   jumpdest
-  45:   timestamp
-  46:   push3 0x018000
+  43:   jumpdest
+  44:   push3 0x018000
+  48:   timestamp
+  49:   mod
   4a:   timestamp
-  4b:   mod
+  4b:   dup2
   4c:   sstore
   4d:   push0
   4e:   calldataload
-  4f:   push3 0x018000
-  53:   timestamp
-  54:   mod
-  55:   push3 0x018000
-  59:   add
-  5a:   sstore
-  5b:   stop
+  4f:   swap1
+  50:   push3 0x018000
+  54:   add
+  55:   sstore
+  56:   stop
 ```
 
 ### Control-flow Graph
 
-`etk` has the ability to generate a [control-flow graph][cfg] to analyze the
-possible paths the code may execute under. To generate, you  need `graphviz`.
-Installation instructions can be found [here][graphviz].
-
-The diagram can then be generated using the following:
+There are several tools to generate a control-flow graph. We'll demostrate
+[`evm-cfg`][evm-cfg] here:
 
 ```console
-ecfg -c 0x$(eas ./src/main.etk) | dot -Tpng -o out.png
+evm-cfg $(eas src/main.etk) | dot -Tpng -o cfg.png
 ```
 
-Open `out.png` with your choice of image viewer.
+*note: you will also need [`graphviz`][graphviz] installed to use the `dot` utility.*
+
+###### `cfg.png`
+![cfg.png](./docs/cfg.png)
 
 ## Testing
 
@@ -123,6 +122,7 @@ A step-by-step debugger can be brought up using `./build-wrapper test --debug {t
 
 [cfg]: https://en.wikipedia.org/wiki/Control-flow_graph
 [etk]: https://github.com/quilt/etk
+[evm-cfg]: https://github.com/plotchy/evm-cfg
 [forge]: https://github.com/foundry-rs/foundry/blob/master/forge
 [foundry]: https://getfoundry.sh/
 [graphviz]: https://graphviz.org/download/
