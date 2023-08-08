@@ -17,6 +17,10 @@
 # |--------------|--------------|
 # 0             10              20
 #   timestamps     beacon roots
+#
+# To get the corresponding beacon root for a specific timestamp, simply add
+# rootmod to the timestamp's index in the first ring buffer. The sum will be
+# the storage slot in the second ring buffer where it is stored.
 
 
 # -----------------------------------------------------------------------------
@@ -39,6 +43,7 @@
         calldataload    # [calldata[0..32]]
 %end
 
+# revert sets up and then executes a revert instruction.
 %macro revert()
         push0           # [0]
         push0           # [0, 0]
@@ -48,90 +53,87 @@
 # -----------------------------------------------------------------------------
 # MACROS END ------------------------------------------------------------------
 # -----------------------------------------------------------------------------
-        
-        # Protect the submit routine by verifying the caller is equal to sysaddr().
-        caller            # [caller]
-        push20 sysaddr()  # [sysaddr, caller] 
-        eq                # [sysaddr == caller]
-        push1 submit      # [submitaddr, sysaddr == caller]
-        jumpi             # []
 
-        # Fallthrough if addresses don't match -- this means the caller intends to read
-        # a root.
+start:
+        # Protect the submit routine by verifying the caller is equal to
+        # sysaddr().
+        caller           # [caller]
+        push20 sysaddr() # [sysaddr, caller] 
+        eq               # [sysaddr == caller]
+        push1 submit     # [submitaddr, sysaddr == caller]
+        jumpi            # []
 
-# -----------------------------------------------------------------------------
-# READ ROOT -------------------------------------------------------------------
-# -----------------------------------------------------------------------------
+        # Fallthrough if addresses don't match -- this means the caller intends
+        # to read a root.
 
         # Check if calldata is equal to 32 bytes.
-        push1 32        # [32]
-        calldatasize    # [calldatasize, 32]
-        eq              # [calldatasize == 32]
+        push1 32         # [32]
+        calldatasize     # [calldatasize, 32]
+        eq               # [calldatasize == 32]
 
         # Jump to continue if length-check passed, otherwise revert.
-        push1 loadts    # [loadts_addr, calldatasize == 32]
-        jumpi           # []
-        %revert()       # []
+        push1 loadts     # [loadts_addr, calldatasize == 32]
+        jumpi            # []
+        %revert()        # []
 
-# Load stored timestamp.
+
 loadts:
-        jumpdest
-        push3 rootmod() # [rootmod]
-        %get_input()    # [time, rootmod]
-        mod             # [time_index]
-        dup1            # [time_index, time_index]
-        sload           # [timestamp, time_index]
+        # Compute the timestamp index and load from storage.
+        jumpdest         # []
+        push3 rootmod()  # [rootmod]
+        %get_input()     # [time, rootmod]
+        mod              # [time_index]
+        dup1             # [time_index, time_index]
+        sload            # [timestamp, time_index]
 
-        # Verify stored timestamp matches input.
-        %get_input()    # [input, timestamp, time_index]
-        eq              # [input == timestamp, time_index]
-        push1 loadroot  # [loadroot_addr, input == timestamp, time_index]
-        jumpi           # [time_index]
-        %revert()       # []
+        # Verify stored timestamp matches input timestamp. It's possible these
+        # don't match if the slot has been overwritten by the ring buffer.
+        %get_input()     # [input, timestamp, time_index]
+        eq               # [input == timestamp, time_index]
+        push1 loadroot   # [loadroot_addr, input == timestamp, time_index]
+        jumpi            # [time_index]
+        %revert()        # []
 
-# Extend index to get root index.
+
 loadroot:
+        # Extend index to get root index.
         jumpdest
-        push3 rootmod() # [rootmod, time_index]
-        add             # [root_index]
-        sload           # [root]
+        push3 rootmod()  # [rootmod, time_index]
+        add              # [root_index]
+        sload            # [root]
 
-        push0           # [0, root]
-        mstore          # []
-
-        push1 32        # [size]
-        push0           # [offset, size]
-        return          # []
-
-# -----------------------------------------------------------------------------
-# READ ROOT END ---------------------------------------------------------------
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
-# SUBMIT ----------------------------------------------------------------------
-# -----------------------------------------------------------------------------
+        # Write the retrieved root to memory so it can be returned.
+        push0            # [0, root]
+        mstore           # []
+        
+        # Return the root.
+        push1 32         # [size]
+        push0            # [offset, size]
+        return           # []
 
 submit:
-        jumpdest                # []
+        jumpdest         # []
 
-        # calculates the index the timestamp should be stored at (time_index = (time % rootmod).
-        push3 rootmod()         # [rootmod]
-        timestamp               # [time, rootmod]
-        mod                     # [time % rootmod]
+        # Calculate the index the timestamp should be stored at, e.g.
+        # time_index = (time % rootmod).
+        push3 rootmod()  # [rootmod]
+        timestamp        # [time, rootmod]
+        mod              # [time % rootmod]
 
-        timestamp               # [time, time_index]
-        dup2                    # [time_index, time, time_index]
-        sstore                  # [time_index]
+        # Write timestamp into storage slot at time_index.
+        timestamp        # [time, time_index]
+        dup2             # [time_index, time, time_index]
+        sstore           # [time_index]
 
-        push0                   # [0, time_index]
-        calldataload            # [root, time_index]
-        swap1                   # [time_index, root]
-        push3 rootmod()         # [rootmod, time_index, root]
-        add                     # [root_index, root]
-        sstore                  # []
+        # Get root from calldata and write into root_index. No validation is
+        # done on the input root. Becuase the routine is protected by a caller
+        # check against sysaddr(), it's okay to assume the value is correctly
+        # given.
+        push0            # [0, time_index]
+        calldataload     # [root, time_index]
+        swap1            # [time_index, root]
+        push3 rootmod()  # [rootmod, time_index, root]
+        add              # [root_index, root]
+        sstore           # []
 
-        stop                    # []
-
-# -----------------------------------------------------------------------------
-# SUBMIT END ------------------------------------------------------------------
-# -----------------------------------------------------------------------------
+        stop             # []
