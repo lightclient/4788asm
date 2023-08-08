@@ -39,13 +39,6 @@
         calldataload    # [calldata[0..32]]
 %end
 
-# get_timestamp_index calculates the index a timestamp should be stored at.
-%macro get_timestamp_index()
-        push3 rootmod() # [rootmod]
-        timestamp       # [timestamp, rootmod]
-        mod             # [timestamp % rootmod]
-%end
-
 %macro revert()
         push0           # [0]
         push0           # [0, 0]
@@ -120,14 +113,20 @@ return          # []
 
 submit:
 jumpdest                # []
-timestamp               # [time]
-%get_timestamp_index()  # [time_index, time]
-sstore                  # []
 
-push0                   # [0]
-calldataload            # [root]
-%get_timestamp_index()  # [time_index, root]
-push3 rootmod()         # [hrm, time_index, root]
+# calculates the index the timestamp should be stored at (time_index = (time % rootmod).
+push3 rootmod()         # [rootmod]
+timestamp               # [time, rootmod]
+mod                     # [time % rootmod]
+
+timestamp               # [time, time_index]
+dup2                    # [time_index, time, time_index]
+sstore                  # [time_index]
+
+push0                   # [0, time_index]
+calldataload            # [root, time_index]
+swap1                   # [time_index, root]
+push3 rootmod()         # [rootmod, time_index, root]
 add                     # [root_index, root]
 sstore                  # []
 
