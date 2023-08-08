@@ -65,14 +65,26 @@ contract ContractTest is Test {
     }
 
     function testReadWrongTimestamp() public {
+        // Set reasonable timestamp.
+        vm.warp(1641070800);
         uint256 time = block.timestamp;
 
         // Store timestamp and root at expected indexes.
         vm.store(unit, timestamp_idx(), bytes32(time));
         vm.store(unit, root_idx(), root);
 
-        // Read root associated with timestamp wrapped around rootmod once.
+        // Wrap around rootmod once forward.
         (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(time+rootmod)));
+        assertFalse(ret);
+        assertEq(data, hex"");
+
+        // Wrap around rootmod once backward.
+        (ret, data) = unit.call(bytes.concat(bytes32(time-rootmod)));
+        assertFalse(ret);
+        assertEq(data, hex"");
+
+        // Timestamp without any associated root.
+        (ret, data) = unit.call(bytes.concat(bytes32(time+1)));
         assertFalse(ret);
         assertEq(data, hex"");
     }
