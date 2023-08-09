@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $ eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe14604357602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f52595ff35b6201800042064281555f359062018000015500
+3373fffffffffffffffffffffffffffffffffffffffe14604457602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f5260205ff35b6201800042064281555f359062018000015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -31,7 +31,7 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x43
+  17:   push1 0x44
   19:   jumpi
 
   1a:   push1 0x20
@@ -67,24 +67,24 @@ $ disease --code 0x$(eas src/main.etk)
   3d:   sload
   3e:   push0
   3f:   mstore
-  40:   msize
-  41:   push0
-  42:   return
+  40:   push1 0x20
+  42:   push0
+  43:   return
 
-  43:   jumpdest
-  44:   push3 0x018000
-  48:   timestamp
-  49:   mod
-  4a:   timestamp
-  4b:   dup2
-  4c:   sstore
-  4d:   push0
-  4e:   calldataload
-  4f:   swap1
-  50:   push3 0x018000
-  54:   add
-  55:   sstore
-  56:   stop
+  44:   jumpdest
+  45:   push3 0x018000
+  49:   timestamp
+  4a:   mod
+  4b:   timestamp
+  4c:   dup2
+  4d:   sstore
+  4e:   push0
+  4f:   calldataload
+  50:   swap1
+  51:   push3 0x018000
+  55:   add
+  56:   sstore
+  57:   stop
 ```
 
 ### Control-flow Graph

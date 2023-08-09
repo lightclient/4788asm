@@ -108,8 +108,8 @@ loadroot:
         mstore           # []
         
         # Return the root.
-        msize            # [32]
-        push0            # [0, 32]
+        push1 32         # [size]
+        push0            # [offset, size]
         return           # []
 
 submit:
