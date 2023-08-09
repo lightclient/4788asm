@@ -1,6 +1,6 @@
 # `4788asm`
 
-This is an [`ekt`][etk] implementation of the EIP-4788
+This is an [`etk`][etk] implementation of the EIP-4788
 system contract. It is 100 bytes once assembled.
 
 ## Getting Started
