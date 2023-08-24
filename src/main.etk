@@ -6,20 +6,20 @@
 #                                             
 # This is an implementation of EIP-4788's predeploy contract. It implements two
 # ring buffers to create bounded beacon root lookup. The first ring buffer is a
-# timestamp % bufferlen -> timestamp mapping. This is used to ensure timestamp
+# timestamp % buflen -> timestamp mapping. This is used to ensure timestamp
 # argument actually matches the stored root and isn't different dividend. The
 # second ring buffer store the beacon root. It's also keyed by timestamp %
-# bufferlen and the shifted right by bufferlen so the two don't overlap.
+# buflen and the shifted right by buflen so the two don't overlap.
 #
 # The ring buffers can be visualized as follows:
 #
-#  bufferlen = 10
+#  buflen = 10
 # |--------------|--------------|
 # 0             10              20
 #   timestamps     beacon roots
 #
 # To get the corresponding beacon root for a specific timestamp, simply add
-# bufferlen to the timestamp's index in the first ring buffer. The sum will be
+# buflen to the timestamp's index in the first ring buffer. The sum will be
 # the storage slot in the second ring buffer where it is stored.
 
 
@@ -27,8 +27,8 @@
 # MACROS ----------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 
-# bufferlen returns the HISTORY_BUFFER_LENGTH as defined in the EIP.
-%def bufferlen()
+# buflen returns the HISTORY_BUFFER_LENGTH as defined in the EIP.
+%def buflen()
         98304
 %end
 
@@ -80,8 +80,8 @@ start:
 loadtime:
         # Compute the timestamp index and load from storage.
         jumpdest         # []
-        push3 bufferlen()  # [bufferlen]
-        %get_input()     # [time, bufferlen]
+        push3 buflen()   # [buflen]
+        %get_input()     # [time, buflen]
         mod              # [time_index]
         dup1             # [time_index, time_index]
         sload            # [timestamp, time_index]
@@ -99,7 +99,7 @@ loadtime:
 loadroot:
         # Extend index to get root index.
         jumpdest
-        push3 bufferlen()  # [bufferlen, time_index]
+        push3 buflen()   # [buflen, time_index]
         add              # [root_index]
         sload            # [root]
 
@@ -116,10 +116,10 @@ submit:
         jumpdest         # []
 
         # Calculate the index the timestamp should be stored at, e.g.
-        # time_index = (time % bufferlen).
-        push3 bufferlen()  # [bufferlen]
-        timestamp        # [time, bufferlen]
-        mod              # [time % bufferlen]
+        # time_index = (time % buflen).
+        push3 buflen()   # [buflen]
+        timestamp        # [time, buflen]
+        mod              # [time % buflen]
 
         # Write timestamp into storage slot at time_index.
         timestamp        # [time, time_index]
@@ -133,7 +133,7 @@ submit:
         push0            # [0, time_index]
         calldataload     # [root, time_index]
         swap1            # [time_index, root]
-        push3 bufferlen()  # [bufferlen, time_index, root]
+        push3 buflen()   # [buflen, time_index, root]
         add              # [root_index, root]
         sstore           # []
 

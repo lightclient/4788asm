@@ -6,7 +6,7 @@ import "../src/Contract.sol";
 
 address constant addr = 0x000000000000000000000000000000000000000b;
 address constant sysaddr = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-uint256 constant bufferlen = 98304;
+uint256 constant buflen = 98304;
 bytes32 constant root    = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
 
 function timestamp() view returns (bytes32) {
@@ -14,11 +14,11 @@ function timestamp() view returns (bytes32) {
 }
 
 function timestamp_idx() view returns (bytes32) {
-        return bytes32(uint256(block.timestamp % bufferlen));
+        return bytes32(uint256(block.timestamp % buflen));
 }
 
 function root_idx() view returns (bytes32) {
-        return bytes32(uint256(block.timestamp % bufferlen + bufferlen));
+        return bytes32(uint256(block.timestamp % buflen + buflen));
 }
 
 contract ContractTest is Test {
@@ -73,13 +73,13 @@ contract ContractTest is Test {
         vm.store(unit, timestamp_idx(), bytes32(time));
         vm.store(unit, root_idx(), root);
 
-        // Wrap around bufferlen once forward.
-        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(time+bufferlen)));
+        // Wrap around buflen once forward.
+        (bool ret, bytes memory data) = unit.call(bytes.concat(bytes32(time+buflen)));
         assertFalse(ret);
         assertEq(data, hex"");
 
-        // Wrap around bufferlen once backward.
-        (ret, data) = unit.call(bytes.concat(bytes32(time-bufferlen)));
+        // Wrap around buflen once backward.
+        (ret, data) = unit.call(bytes.concat(bytes32(time-buflen)));
         assertFalse(ret);
         assertEq(data, hex"");
 
