@@ -29,7 +29,7 @@
 
 # buflen returns the HISTORY_BUFFER_LENGTH as defined in the EIP.
 %def buflen()
-        98304
+        93600
 %end
 
 # sysaddr is the address which calls the contract to submit a new root.
