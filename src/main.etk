@@ -37,12 +37,6 @@
         0xfffffffffffffffffffffffffffffffffffffffe
 %end
 
-# get_input loads the first word of input from calldata.
-%macro get_input()
-        push0           # [0]
-        calldataload    # [calldata[0..32]]
-%end
-
 # revert sets up and then executes a revert instruction.
 %macro revert()
         push0           # [0]
@@ -79,23 +73,27 @@ start:
 loadtime:
         jumpdest
 
+        # Load input.
+        push0            # [0]
+        calldataload     # [calldata[0..32]]
+        dup1             # [time]
+
         # Verify input timestamp is non-zero.
-        %get_input()     # [time]
-        iszero           # [time == 0]
-        push1 revert     # [revert_lbl, time == 0]
-        jumpi            # []
+        iszero           # [time == 0, time]
+        push1 revert     # [revert_lbl, time == 0, time]
+        jumpi            # [time]
 
         # Compute the timestamp index and load from storage.
-        push3 buflen()   # [buflen]
-        %get_input()     # [time, buflen]
-        mod              # [time_index]
-        dup1             # [time_index, time_index]
-        sload            # [timestamp, time_index]
+        push3 buflen()   # [buflen, time]
+        dup2             # [time, buflen, time]
+        mod              # [time_index, time]
+        swap1            # [time, time_index]
+        dup2             # [time_index, time, time_index]
+        sload            # [timestamp, time, time_index]
 
         # Verify stored timestamp matches input timestamp. It's possible these
         # don't match if the slot has been overwritten by the ring buffer or if
         # the timestamp input wasn't a valid previous timestamp.
-        %get_input()     # [input, timestamp, time_index]
         eq               # [input == timestamp, time_index]
         push1 loadroot   # [loadroot_lbl, input == timestamp, time_index]
         jumpi            # [time_index]
