@@ -76,10 +76,16 @@ start:
         jumpi            # []
         %revert()        # []
 
-
 loadtime:
+        jumpdest
+
+        # Verify input timestamp is non-zero.
+        %get_input()     # [time]
+        iszero           # [time == 0]
+        push1 revert     # [revert_lbl, time == 0]
+        jumpi            # []
+
         # Compute the timestamp index and load from storage.
-        jumpdest         # []
         push3 buflen()   # [buflen]
         %get_input()     # [time, buflen]
         mod              # [time_index]
@@ -111,6 +117,10 @@ loadroot:
         push1 32         # [size]
         push0            # [offset, size]
         return           # []
+
+revert:
+        jumpdest
+        %revert()
 
 submit:
         jumpdest         # []

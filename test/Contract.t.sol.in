@@ -87,6 +87,11 @@ contract ContractTest is Test {
         (ret, data) = unit.call(bytes.concat(bytes32(time+1)));
         assertFalse(ret);
         assertEq(data, hex"");
+
+        // Timestamp zero should fail.
+        (ret, data) = unit.call(bytes.concat(bytes32(0)));
+        assertFalse(ret);
+        assertEq(data, hex"");
     }
 
     // testUpdate verifies the set functionality of the contract.
