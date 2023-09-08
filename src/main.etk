@@ -37,12 +37,6 @@
         0xfffffffffffffffffffffffffffffffffffffffe
 %end
 
-# m_revert sets up and then executes a revert(0,0) operation.
-%macro m_revert()
-        push0           # [0]
-        push0           # [0, 0]
-        revert          # []
-%end
 
 # -----------------------------------------------------------------------------
 # MACROS END ------------------------------------------------------------------
@@ -64,14 +58,11 @@ start:
         push1 32         # [32]
         calldatasize     # [calldatasize, 32]
         eq               # [calldatasize == 32]
+        iszero           # [calldatasize != 32]
 
-        # Jump to continue if length-check passed, otherwise revert.
-        push1 loadtime   # [loadtime_lbl, calldatasize == 32]
-        jumpi            # []
-        %m_revert()        # []
-
-loadtime:
-        jumpdest
+        # Jump to revert if length-check failed
+        push1 lbl_revert   # [lbl_revert, calldatasize == 32]
+        jumpi              # []
 
         # Load input (time).
         push0            # [0]
@@ -94,15 +85,12 @@ loadtime:
         # Verify stored timestamp matches input timestamp. It's possible these
         # don't match if the slot has been overwritten by the ring buffer or if
         # the timestamp input wasn't a valid previous timestamp.
-        eq               # [stored_timestamp == input_timestamp, time_index]
-        push1 loadroot   # [loadroot_lbl, input == timestamp, time_index]
-        jumpi            # [time_index]
-        %m_revert()        # []
+        eq                 # [stored_timestamp == input_timestamp, time_index]
+        iszero             # [stored_timestamp != input_timestamp, time_index]
+        push1 lbl_revert   # [lbl_revert, input == timestamp, time_index]
+        jumpi              # [time_index]
 
-
-loadroot:
         # Extend index to get root index.
-        jumpdest         # [time_index]
         push3 buflen()   # [buflen, time_index]
         add              # [root_index]
         sload            # [root]
@@ -118,7 +106,9 @@ loadroot:
 
 lbl_revert:
         jumpdest
-        %m_revert()
+        push0           # [0]
+        push0           # [0, 0]
+        revert          # []
 
 submit:
         jumpdest         # []

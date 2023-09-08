@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $  eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762016da0810690815414603c575f5ffd5b62016da001545f5260205ff35b5f5ffd5b62016da042064281555f359062016da0015500
+3373fffffffffffffffffffffffffffffffffffffffe1460475760203614156043575f35801560435762016da08106908154141560435762016da001545f5260205ff35b5f5ffd5b62016da042064281555f359062016da0015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -31,70 +31,63 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x4d # selector("swap26309536(address,address,uint256,uint256,uint256)")
+  17:   push1 0x47
   19:   jumpi
 
   1a:   push1 0x20
   1c:   calldatasize
   1d:   eq
-  1e:   push1 0x24
-  20:   jumpi
+  1e:   iszero
+  1f:   push1 0x43
+  21:   jumpi
 
-  21:   push0
   22:   push0
-  23:   revert
+  23:   calldataload
+  24:   dup1
+  25:   iszero
+  26:   push1 0x43
+  28:   jumpi
 
-  24:   jumpdest
-  25:   push0
-  26:   calldataload
-  27:   dup1
-  28:   iszero
-  29:   push1 0x49
-  2b:   jumpi
-
-  2c:   push3 0x016da0
+  29:   push3 0x016da0
+  2d:   dup2
+  2e:   mod
+  2f:   swap1
   30:   dup2
-  31:   mod
-  32:   swap1
-  33:   dup2
-  34:   sload
-  35:   eq
-  36:   push1 0x3c
-  38:   jumpi
+  31:   sload
+  32:   eq
+  33:   iszero
+  34:   push1 0x43
+  36:   jumpi
 
-  39:   push0
-  3a:   push0
-  3b:   revert
+  37:   push3 0x016da0
+  3b:   add
+  3c:   sload
+  3d:   push0
+  3e:   mstore
+  3f:   push1 0x20
+  41:   push0
+  42:   return
 
-  3c:   jumpdest
-  3d:   push3 0x016da0
-  41:   add
-  42:   sload
-  43:   push0
-  44:   mstore
-  45:   push1 0x20
-  47:   push0
-  48:   return
+  43:   jumpdest
+  44:   push0
+  45:   push0
+  46:   revert
 
-  49:   jumpdest
-  4a:   push0
-  4b:   push0
-  4c:   revert
+  47:   jumpdest
+  48:   push3 0x016da0
+  4c:   timestamp
+  4d:   mod
+  4e:   timestamp
+  4f:   dup2
+  50:   sstore
+  51:   push0
+  52:   calldataload
+  53:   swap1
+  54:   push3 0x016da0
+  58:   add
+  59:   sstore
+  5a:   stop
 
-  4d:   jumpdest
-  4e:   push3 0x016da0
-  52:   timestamp
-  53:   mod
-  54:   timestamp
-  55:   dup2
-  56:   sstore
-  57:   push0
-  58:   calldataload
-  59:   swap1
-  5a:   push3 0x016da0
-  5e:   add
-  5f:   sstore
-  60:   stop
 
 ```
 
