@@ -31,7 +31,7 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x4d # selector("swap26309536(address,address,uint256,uint256,uint256)")
+  17:   push1 0x4d
   19:   jumpi
 
   1a:   push1 0x20
