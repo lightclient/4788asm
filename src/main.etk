@@ -73,7 +73,7 @@ start:
 loadtime:
         jumpdest
 
-        # Load input (time).
+        # Load input timestamp.
         push0            # [0]
         calldataload     # [input_timestamp]
         dup1             # [input_timestamp, input_timestamp]
