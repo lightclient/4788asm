@@ -37,8 +37,8 @@
         0xfffffffffffffffffffffffffffffffffffffffe
 %end
 
-# m_revert sets up and then executes a revert(0,0) operation.
-%macro m_revert()
+# do_revert sets up and then executes a revert(0,0) operation.
+%macro do_revert()
         push0           # [0]
         push0           # [0, 0]
         revert          # []
@@ -68,20 +68,20 @@ start:
         # Jump to continue if length-check passed, otherwise revert.
         push1 loadtime   # [loadtime_lbl, calldatasize == 32]
         jumpi            # []
-        %m_revert()        # []
+        %do_revert()     # []
 
 loadtime:
         jumpdest
 
         # Load input (time).
         push0            # [0]
-        calldataload     # [calldata[0..32]]
+        calldataload     # [input_timestamp]
         dup1             # [input_timestamp, input_timestamp]
 
         # Verify input timestamp is non-zero.
-        iszero             # [input_timestamp == 0, input_timestamp]
-        push1 lbl_revert   # [lbl_revert, input_timestamp == 0, input_timestamp]
-        jumpi              # [input_timestamp]
+        iszero           # [input_timestamp == 0, input_timestamp]
+        push1 throw      # [throw_lbl, input_timestamp == 0, input_timestamp]
+        jumpi            # [input_timestamp]
 
         # Compute the timestamp index and load from storage.
         push3 buflen()   # [buflen, input_timestamp]
@@ -97,8 +97,7 @@ loadtime:
         eq               # [stored_timestamp == input_timestamp, time_index]
         push1 loadroot   # [loadroot_lbl, input == timestamp, time_index]
         jumpi            # [time_index]
-        %m_revert()        # []
-
+        %do_revert()     # []
 
 loadroot:
         # Extend index to get root index.
@@ -116,9 +115,10 @@ loadroot:
         push0            # [offset, size]
         return           # []
 
-lbl_revert:
+throw:
+        # Reverts current execution with no return data.
         jumpdest
-        %m_revert()
+        %do_revert()
 
 submit:
         jumpdest         # []
