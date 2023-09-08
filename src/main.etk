@@ -29,7 +29,7 @@
 
 # buflen returns the HISTORY_BUFFER_LENGTH as defined in the EIP.
 %def buflen()
-        98304
+        93600
 %end
 
 # sysaddr is the address which calls the contract to submit a new root.
@@ -37,14 +37,8 @@
         0xfffffffffffffffffffffffffffffffffffffffe
 %end
 
-# get_input loads the first word of input from calldata.
-%macro get_input()
-        push0           # [0]
-        calldataload    # [calldata[0..32]]
-%end
-
-# revert sets up and then executes a revert instruction.
-%macro revert()
+# do_revert sets up and then executes a revert(0,0) operation.
+%macro do_revert()
         push0           # [0]
         push0           # [0, 0]
         revert          # []
@@ -74,31 +68,40 @@ start:
         # Jump to continue if length-check passed, otherwise revert.
         push1 loadtime   # [loadtime_lbl, calldatasize == 32]
         jumpi            # []
-        %revert()        # []
-
+        %do_revert()     # []
 
 loadtime:
+        jumpdest
+
+        # Load input timestamp.
+        push0            # [0]
+        calldataload     # [input_timestamp]
+        dup1             # [input_timestamp, input_timestamp]
+
+        # Verify input timestamp is non-zero.
+        iszero           # [input_timestamp == 0, input_timestamp]
+        push1 throw      # [throw_lbl, input_timestamp == 0, input_timestamp]
+        jumpi            # [input_timestamp]
+
         # Compute the timestamp index and load from storage.
-        jumpdest         # []
-        push3 buflen()   # [buflen]
-        %get_input()     # [time, buflen]
-        mod              # [time_index]
-        dup1             # [time_index, time_index]
-        sload            # [timestamp, time_index]
+        push3 buflen()   # [buflen, input_timestamp]
+        dup2             # [input_timestamp, buflen, input_timestamp]
+        mod              # [time_index, input_timestamp]
+        swap1            # [input_timestamp, time_index]
+        dup2             # [time_index, input_timestamp, time_index]
+        sload            # [stored_timestamp, input_timestamp, time_index]
 
         # Verify stored timestamp matches input timestamp. It's possible these
         # don't match if the slot has been overwritten by the ring buffer or if
         # the timestamp input wasn't a valid previous timestamp.
-        %get_input()     # [input, timestamp, time_index]
-        eq               # [input == timestamp, time_index]
+        eq               # [stored_timestamp == input_timestamp, time_index]
         push1 loadroot   # [loadroot_lbl, input == timestamp, time_index]
         jumpi            # [time_index]
-        %revert()        # []
-
+        %do_revert()     # []
 
 loadroot:
         # Extend index to get root index.
-        jumpdest
+        jumpdest         # [time_index]
         push3 buflen()   # [buflen, time_index]
         add              # [root_index]
         sload            # [root]
@@ -111,6 +114,11 @@ loadroot:
         push1 32         # [size]
         push0            # [offset, size]
         return           # []
+
+throw:
+        # Reverts current execution with no return data.
+        jumpdest
+        %do_revert()
 
 submit:
         jumpdest         # []

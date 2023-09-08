@@ -6,7 +6,7 @@ import "../src/Contract.sol";
 
 address constant addr = 0x000000000000000000000000000000000000000b;
 address constant sysaddr = 0xffffFFFfFFffffffffffffffFfFFFfffFFFfFFfE;
-uint256 constant buflen = 98304;
+uint256 constant buflen = 93600;
 bytes32 constant root    = hex"88e96d4537bea4d9c05d12549907b32561d3bf31f45aae734cdc119f13406cb6";
 
 function timestamp() view returns (bytes32) {
@@ -87,6 +87,11 @@ contract ContractTest is Test {
         (ret, data) = unit.call(bytes.concat(bytes32(time+1)));
         assertFalse(ret);
         assertEq(data, hex"");
+
+        // Timestamp zero should fail.
+        (ret, data) = unit.call(bytes.concat(bytes32(0)));
+        assertFalse(ret);
+        assertEq(data, hex"");
     }
 
     // testUpdate verifies the set functionality of the contract.
@@ -137,7 +142,7 @@ contract ContractTest is Test {
         uint256 start = block.timestamp;
 
         // Saturate storage with fake roots.
-        for (uint256 i = 0; i < 8192; i += 1) {
+        for (uint256 i = 0; i < buflen / 12; i += 1) {
             bytes32 pbbr = bytes32(i*1337);
             vm.prank(sysaddr);
             (bool ret, bytes memory data) = unit.call(bytes.concat(pbbr));
@@ -147,7 +152,7 @@ contract ContractTest is Test {
         }
 
         // Attempt to read all values in same block context.
-        for (uint256 i = 0; i < 8192; i += 1) {
+        for (uint256 i = 0; i < buflen / 12; i += 1) {
             bytes32 time = bytes32(uint256(start+i*12));
             (bool ret, bytes memory got) = unit.call(bytes.concat(time));
             assertTrue(ret);

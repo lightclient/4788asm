@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $ eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe14604457602036146024575f5ffd5b620180005f350680545f35146037575f5ffd5b6201800001545f5260205ff35b6201800042064281555f359062018000015500
+3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762016da0810690815414603c575f5ffd5b62016da001545f5260205ff35b5f5ffd5b62016da042064281555f359062016da0015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -31,7 +31,7 @@ $ disease --code 0x$(eas src/main.etk)
    0:   caller
    1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
   16:   eq
-  17:   push1 0x44
+  17:   push1 0x4d
   19:   jumpi
 
   1a:   push1 0x20
@@ -45,46 +45,57 @@ $ disease --code 0x$(eas src/main.etk)
   23:   revert
 
   24:   jumpdest
-  25:   push3 0x018000
-  29:   push0
-  2a:   calldataload
-  2b:   mod
-  2c:   dup1
-  2d:   sload
-  2e:   push0
-  2f:   calldataload
-  30:   eq
-  31:   push1 0x37
-  33:   jumpi
+  25:   push0
+  26:   calldataload
+  27:   dup1
+  28:   iszero
+  29:   push1 0x49
+  2b:   jumpi
 
-  34:   push0
-  35:   push0
-  36:   revert
+  2c:   push3 0x016da0
+  30:   dup2
+  31:   mod
+  32:   swap1
+  33:   dup2
+  34:   sload
+  35:   eq
+  36:   push1 0x3c
+  38:   jumpi
 
-  37:   jumpdest
-  38:   push3 0x018000
-  3c:   add
-  3d:   sload
-  3e:   push0
-  3f:   mstore
-  40:   push1 0x20
-  42:   push0
-  43:   return
+  39:   push0
+  3a:   push0
+  3b:   revert
 
-  44:   jumpdest
-  45:   push3 0x018000
-  49:   timestamp
-  4a:   mod
-  4b:   timestamp
-  4c:   dup2
-  4d:   sstore
-  4e:   push0
-  4f:   calldataload
-  50:   swap1
-  51:   push3 0x018000
-  55:   add
+  3c:   jumpdest
+  3d:   push3 0x016da0
+  41:   add
+  42:   sload
+  43:   push0
+  44:   mstore
+  45:   push1 0x20
+  47:   push0
+  48:   return
+
+  49:   jumpdest
+  4a:   push0
+  4b:   push0
+  4c:   revert
+
+  4d:   jumpdest
+  4e:   push3 0x016da0
+  52:   timestamp
+  53:   mod
+  54:   timestamp
+  55:   dup2
   56:   sstore
-  57:   stop
+  57:   push0
+  58:   calldataload
+  59:   swap1
+  5a:   push3 0x016da0
+  5e:   add
+  5f:   sstore
+  60:   stop
+
 ```
 
 ### Control-flow Graph
