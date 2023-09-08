@@ -19,7 +19,7 @@ $ cargo install --features cli etk-asm etk-dasm
 To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
-$  eas src/main.etk
+$ eas src/main.etk
 3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762016da0810690815414603c575f5ffd5b62016da001545f5260205ff35b5f5ffd5b62016da042064281555f359062016da0015500
 ```
 
