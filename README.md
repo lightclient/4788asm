@@ -20,7 +20,7 @@ To assemble `src/main.etk` you will need to invoke `eas`:
 
 ```console
 $ eas src/main.etk
-3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762016da0810690815414603c575f5ffd5b62016da001545f5260205ff35b5f5ffd5b62016da042064281555f359062016da0015500
+3373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500
 ```
 
 It's also possible to remove the `etk` preproccessing by doing a roundtrip --
@@ -28,74 +28,81 @@ first assembling the program, then disassembling the program:
 
 ```console
 $ disease --code 0x$(eas src/main.etk)
-   0:   caller
-   1:   push20 0xfffffffffffffffffffffffffffffffffffffffe
-  16:   eq
-  17:   push1 0x4d
-  19:   jumpi
+   0:   push1 0x61
+   2:   dup1
+   3:   push1 0x09
+   5:   push0
+   6:   codecopy
+   7:   push0
+   8:   return
 
-  1a:   push1 0x20
-  1c:   calldatasize
-  1d:   eq
-  1e:   push1 0x24
-  20:   jumpi
+   9:   caller
+   a:   push20 0xfffffffffffffffffffffffffffffffffffffffe
+  1f:   eq
+  20:   push1 0x4d
+  22:   jumpi
 
-  21:   push0
-  22:   push0
-  23:   revert
+  23:   push1 0x20
+  25:   calldatasize
+  26:   eq
+  27:   push1 0x24
+  29:   jumpi
 
-  24:   jumpdest
-  25:   push0
-  26:   calldataload
-  27:   dup1
-  28:   iszero
-  29:   push1 0x49
-  2b:   jumpi
+  2a:   push0
+  2b:   push0
+  2c:   revert
 
-  2c:   push3 0x016da0
-  30:   dup2
-  31:   mod
-  32:   swap1
-  33:   dup2
-  34:   sload
-  35:   eq
-  36:   push1 0x3c
-  38:   jumpi
+  2d:   jumpdest
+  2e:   push0
+  2f:   calldataload
+  30:   dup1
+  31:   iszero
+  32:   push1 0x49
+  34:   jumpi
 
-  39:   push0
-  3a:   push0
-  3b:   revert
+  35:   push3 0x001fff
+  39:   dup2
+  3a:   mod
+  3b:   swap1
+  3c:   dup2
+  3d:   sload
+  3e:   eq
+  3f:   push1 0x3c
+  41:   jumpi
 
-  3c:   jumpdest
-  3d:   push3 0x016da0
-  41:   add
-  42:   sload
+  42:   push0
   43:   push0
-  44:   mstore
-  45:   push1 0x20
-  47:   push0
-  48:   return
+  44:   revert
 
-  49:   jumpdest
-  4a:   push0
-  4b:   push0
-  4c:   revert
+  45:   jumpdest
+  46:   push3 0x001fff
+  4a:   add
+  4b:   sload
+  4c:   push0
+  4d:   mstore
+  4e:   push1 0x20
+  50:   push0
+  51:   return
 
-  4d:   jumpdest
-  4e:   push3 0x016da0
-  52:   timestamp
-  53:   mod
-  54:   timestamp
-  55:   dup2
-  56:   sstore
-  57:   push0
-  58:   calldataload
-  59:   swap1
-  5a:   push3 0x016da0
-  5e:   add
+  52:   jumpdest
+  53:   push0
+  54:   push0
+  55:   revert
+
+  56:   jumpdest
+  57:   push3 0x001fff
+  5b:   timestamp
+  5c:   mod
+  5d:   timestamp
+  5e:   dup2
   5f:   sstore
-  60:   stop
-
+  60:   push0
+  61:   calldataload
+  62:   swap1
+  63:   push3 0x001fff
+  67:   add
+  68:   sstore
+  69:   stop
 ```
 
 ### Control-flow Graph
