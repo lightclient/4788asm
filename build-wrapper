@@ -4,6 +4,7 @@ set -euf -o pipefail
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}"; )" &> /dev/null && pwd 2> /dev/null; )";
 
 BYTECODE="$(eas "$SCRIPT_DIR/src/main.etk")"
+# BYTECODE="$(huffc -r $SCRIPT_DIR/src/4788.huff)"
 
 sed \
     -e "s/@bytecode@/$BYTECODE/" \
