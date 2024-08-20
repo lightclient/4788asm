@@ -1,3 +1,6 @@
+**NOTE**: _The contents of this repository have been moved to
+https://github.com/lightclient/sys-asm._
+
 # `4788asm`
 
 This is an [`etk`][etk] implementation of the EIP-4788
