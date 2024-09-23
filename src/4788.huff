@@ -1,0 +1,129 @@
+///  _  _     ___   _  _    _  _                          
+/// | || |   ( _ ) | || |  | || |    __ _  ___  _ __ ___  
+/// | || |_  / _ \ | || |_ | || |_  / _` |/ __|| '_ ` _ \ 
+/// |__   _|| (_) ||__   _||__   _|| (_| |\__ \| | | | | |
+///    |_|   \___/    |_|     |_|   \__,_||___/|_| |_| |_| <3 huff
+///
+/// This is an implementation of EIP-4788's predeploy contract. It implements two
+/// ring buffers to create bounded beacon root lookup. The first ring buffer is a
+/// timestamp % rootmod -> timestamp mapping. This is used to ensure timestamp
+/// argument actually matches the stored root and isn't different dividend. The
+/// second ring buffer store the beacon root. It's also keyed by timestamp %
+/// rootmod and the shifted right by rootmod so the two don't overlap.
+///
+/// The ring buffers can be visualized as follows:
+///
+///  rootmod = 10
+/// |--------------|--------------|
+/// 0             10              20
+///   timestamps     beacon roots
+
+////////////////////////////////////////////////////////////////
+//                         CONSTANTS                          //
+////////////////////////////////////////////////////////////////
+
+/// @notice The `HISTORICAL_ROOTS_MODULUS` as defined in the EIP
+#define constant ROOT_MOD = 0x18000
+
+/// @notice The address which calls the contract to submit a new root.
+#define constant SYS_ADDR = 0xfffffffffffffffffffffffffffffffffffffffe
+
+////////////////////////////////////////////////////////////////
+//                           MACROS                           //
+////////////////////////////////////////////////////////////////
+
+/// @notice Entry point
+#define macro MAIN() = takes (0) returns (0) {
+    // Protect the submit routine by verifying that the caller is the `SYS_ADDR`
+    caller             // [caller]
+    [SYS_ADDR]         // [SYS_ADDR, caller]
+    eq                 // [caller == SYS_ADDR]
+    submit jumpi       // []
+
+    ////////////////////////////////////////////////////////////////
+    //                            LOAD                            //
+    ////////////////////////////////////////////////////////////////
+
+    // Fallthrough: If the caller is not the `SYS_ADDR`, this means that the 
+    // caller wants to read the root.
+    0x20               // [0x20]
+    calldatasize       // [len(calldata), 0x20]
+    eq                 // [len(calldata) == 0x20]
+    loadts jumpi       // []
+
+    // Fallthrough: Revert if the calldatasize is not 0x20.
+    FAIL()             //<- Context terminated: panic.
+
+    // Load stored timestamp.
+    loadts:
+        //-> Entry stack: []
+        LOAD_TS()      // [timestamp, time_index]
+
+    // Verify that the stored timestamp matches the input.
+    0x00 calldataload  // [input, timestamp, time_index]
+    eq                 // [timestamp == input, time_index]
+    loadroot jumpi     // [time_index]
+
+    // Fallthrough: Revert if the stored timestamp doesn't match the input.
+    FAIL()
+
+    loadroot:
+        //-> Entry stack: [time_index]
+        LOAD_ROOT()    //<- Context terminated successfully.
+
+    ////////////////////////////////////////////////////////////////
+    //                           SUBMIT                           //
+    ////////////////////////////////////////////////////////////////
+
+    submit:
+        //-> Entry stack: []
+        [ROOT_MOD]     // [ROOT_MOD]
+        timestamp      // [time, ROOT_MOD]
+        mod            // [time_index]
+        timestamp      // [time, time_index]
+        dup2           // [time_index, time, time_index]
+        sstore         // [time_index]
+
+        0x00           // [0x00, time_index]
+        calldataload   // [root, time_index]
+        swap1          // [time_index, root]
+        [ROOT_MOD]     // [ROOT_MOD, time_index, root]
+        add            // [root_index, root]
+        sstore         // []
+
+        stop           //<- Context terminated successfully.
+}
+
+/// @notice Loads a stored timestamp from the ring buffer.
+#define macro LOAD_TS() = takes (0) returns (2) {
+    // Input stack: []
+
+    [ROOT_MOD]   // [ROOT_MOD]
+    0x00         // [0x00, ROOT_MOD]
+    calldataload // [time, ROOT_MOD]
+    mod          // [time_index]
+    dup1         // [time_index, time_index]
+    sload        // [timestamp, time_index]
+
+    // Exit stack:  [timestamp, time_index]
+}
+
+/// @notice Loads a stored root from the ring buffer.
+#define macro LOAD_ROOT() = takes (1) returns (0) {
+    // Input stack: [time_index]
+
+    [ROOT_MOD]   // [ROOT_MOD, time_index]
+    add          // [root_index]
+    sload        // [root]
+
+    0x00 mstore  // []
+
+    msize 0x00   // [0x00, 0x20]
+    return       //<- Context terminated successfully.
+}
+
+
+/// @notice Immediately reverts.
+#define macro FAIL() = takes (0) returns (0) {
+    0x00 0x00 revert
+}
